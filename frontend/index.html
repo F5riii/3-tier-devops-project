@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>3-Tier DevOps App</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        .status {
+            padding: 10px;
+            margin: 20px 0;
+            border: 1px solid #ccc;
+        }
+
+        input {
+            padding: 10px;
+            width: 250px;
+        }
+
+        button {
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+
+        li {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>3-Tier DevOps Application</h1>
+
+    <p>
+        Frontend → Flask API → PostgreSQL
+    </p>
+
+    <div class="status">
+        <strong>API Status:</strong>
+        <span id="health-status">Checking...</span>
+    </div>
+
+    <h2>Users</h2>
+
+    <ul id="users-list"></ul>
+
+    <h2>Add User</h2>
+
+    <input
+        type="text"
+        id="username"
+        placeholder="Enter user name"
+    >
+
+    <button onclick="addUser()">
+        Add User
+    </button>
+
+    <script>
+
+        const API_URL = "http://localhost:5000";
+
+
+        async function checkHealth() {
+
+            try {
+
+                const response = await fetch(
+                    `${API_URL}/health`
+                );
+
+                const data = await response.json();
+
+                document.getElementById(
+                    "health-status"
+                ).textContent = data.status;
+
+            } catch (error) {
+
+                document.getElementById(
+                    "health-status"
+                ).textContent = "API unavailable";
+
+            }
+        }
+
+
+        async function loadUsers() {
+
+            try {
+
+                const response = await fetch(
+                    `${API_URL}/users`
+                );
+
+                const data = await response.json();
+
+                const usersList =
+                    document.getElementById("users-list");
+
+                usersList.innerHTML = "";
+
+                data.users.forEach(user => {
+
+                    const li =
+                        document.createElement("li");
+
+                    li.textContent =
+                        `${user.id} - ${user.name}`;
+
+                    usersList.appendChild(li);
+
+                });
+
+            } catch (error) {
+
+                console.error(
+                    "Failed to load users:",
+                    error
+                );
+
+            }
+        }
+
+
+        async function addUser() {
+
+            const input =
+                document.getElementById("username");
+
+            const name =
+                input.value.trim();
+
+            if (!name) {
+
+                alert("Please enter a name");
+
+                return;
+            }
+
+
+            try {
+
+                const response = await fetch(
+                    `${API_URL}/users`,
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            name: name
+                        })
+                    }
+                );
+
+
+                if (response.status === 201) {
+
+                    input.value = "";
+
+                    await loadUsers();
+
+                } else {
+
+                    alert("Failed to create user");
+
+                }
+
+            } catch (error) {
+
+                console.error(
+                    "Failed to create user:",
+                    error
+                );
+
+            }
+        }
+
+
+        checkHealth();
+        loadUsers();
+
+    </script>
+
+</body>
+</html>

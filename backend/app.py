@@ -1,10 +1,10 @@
 import os
-
+from flask_cors import CORS
 import psycopg2
 from flask import Flask, jsonify, request , redirect
 
 app = Flask(__name__)
-
+CORS(app)
 
 def get_db_connection():
     return psycopg2.connect(
